@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111111" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Song Builder" />
+  <title>My Song Builder</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>My Song Builder</h1>
+      <p>Fast fret-shape entry → sections → song arrangement → practice/theory output.</p>
+    </div>
+    <div class="header-actions">
+      <button id="newSongBtn" class="secondary">New</button>
+      <button id="saveSongBtn">Save</button>
+      <button id="loadSongBtn" class="secondary">Load</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="section-title-row">
+        <h2>1. Song & Instrument</h2>
+      </div>
+
+      <div class="grid settings-grid">
+        <label>
+          Song title
+          <input id="songTitle" type="text" placeholder="Untitled Song" />
+        </label>
+
+        <label>
+          Instrument
+          <select id="instrumentType">
+            <option value="guitar">Guitar</option>
+            <option value="bass">Bass</option>
+            <option value="custom">Custom</option>
+          </select>
+        </label>
+
+        <label>
+          Strings
+          <select id="stringCount">
+            <option>4</option>
+            <option>5</option>
+            <option selected>6</option>
+            <option>7</option>
+            <option>8</option>
+          </select>
+        </label>
+
+        <label>
+          Tuning preset
+          <select id="tuningPreset"></select>
+        </label>
+      </div>
+
+      <div class="subcard">
+        <div class="section-title-row">
+          <h3>Custom tuning <span class="muted">(low → high)</span></h3>
+        </div>
+        <div id="tuningEditors" class="tuning-editors"></div>
+      </div>
+
+      <div class="grid compact-grid">
+        <label>
+          Section label style
+          <select id="sectionLabelStyle">
+            <option value="name">Name — e.g. C — Chorus</option>
+            <option value="section">Section — e.g. Section C</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <div class="workspace-left">
+        <section class="card">
+          <div class="section-title-row">
+            <div>
+              <h2>2. Chord Entry by Section</h2>
+              <p class="muted">Enter frets low → high. Use <strong>X</strong> for muted/not played and <strong>0</strong> for open.</p>
+            </div>
+            <button id="addSectionBtn">+ Section</button>
+          </div>
+          <div id="sectionsContainer"></div>
+        </section>
+      </div>
+
+      <div class="workspace-right">
+        <section class="card organizer-card">
+          <div class="section-title-row">
+            <div>
+              <h2>3. Song Organizer</h2>
+              <p class="muted">Drag sections here or reorder them. <strong>Select Copy to duplicate.</strong></p>
+            </div>
+            <label class="copy-toggle">
+              <input id="copyMode" type="checkbox" />
+              <span>Copy</span>
+            </label>
+          </div>
+
+          <div id="arrangementDropZone" class="drop-zone">
+            <div id="arrangementList"></div>
+            <div id="emptyArrangementHint" class="empty-hint">Drag a section here to add it to the song.</div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-title-row">
+        <h2>4. Outputs</h2>
+        <div class="tabs">
+          <button class="tab active" data-tab="practice">Practice</button>
+          <button class="tab" data-tab="theory">Theory</button>
+        </div>
+      </div>
+
+      <div id="practiceTab" class="tab-panel active">
+        <div class="output-controls">
+          <label>
+            Practice display
+            <select id="practiceDisplayMode">
+              <option value="shapes">Shapes</option>
+              <option value="both" selected>Shapes + chord names</option>
+            </select>
+          </label>
+          <button id="exportPracticeBtn">Export Practice PNG</button>
+        </div>
+        <div id="practiceOutput" class="practice-sheet"></div>
+      </div>
+
+      <div id="theoryTab" class="tab-panel">
+        <div id="theoryOutput" class="theory-sheet"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-title-row">
+        <div>
+          <h2>Chord Shape Library</h2>
+          <p class="muted">The app remembers shapes you enter for each tuning. Standard guitar and bass include starter shapes.</p>
+        </div>
+        <button id="clearLibraryBtn" class="secondary danger">Clear learned shapes</button>
+      </div>
+      <div id="librarySummary" class="library-summary"></div>
+    </section>
+  </main>
+
+  <dialog id="loadDialog">
+    <form method="dialog" class="dialog-card">
+      <div class="section-title-row">
+        <h3>Saved Songs</h3>
+        <button value="cancel" class="secondary">Close</button>
+      </div>
+      <div id="savedSongsList"></div>
+    </form>
+  </dialog>
+
+  <template id="sectionTemplate">
+    <article class="song-section" draggable="true">
+      <div class="section-head">
+        <div class="section-ident">
+          <span class="drag-handle" title="Drag section">⋮⋮</span>
+          <strong class="section-letter"></strong>
+        </div>
+        <div class="section-meta">
+          <input class="section-name-input" type="text" placeholder="e.g. Chorus" />
+          <input class="section-note-input" type="text" placeholder="Section note (optional)" />
+        </div>
+        <div class="row-actions">
+          <button class="add-to-song-btn secondary" type="button" title="Add this section to the organizer">Add →</button>
+          <button class="add-chord-btn" type="button">+ Chord</button>
+          <button class="delete-section-btn secondary danger" type="button">Delete</button>
+        </div>
+      </div>
+      <div class="chords-list"></div>
+    </article>
+  </template>
+
+  <template id="chordTemplate">
+    <div class="chord-row">
+      <div class="chord-index"></div>
+      <div class="fret-inputs"></div>
+      <div class="chord-detected">
+        <div class="detected-name">—</div>
+        <div class="detected-notes muted"></div>
+      </div>
+      <input class="chord-note-input" type="text" placeholder="Chord note (optional)" />
+      <div class="row-actions">
+        <button class="duplicate-chord-btn secondary" type="button">Copy</button>
+        <button class="delete-chord-btn secondary danger" type="button">×</button>
+      </div>
+    </div>
+  </template>
+
+  <script src="./app.js"></script>
+</body>
+</html>
